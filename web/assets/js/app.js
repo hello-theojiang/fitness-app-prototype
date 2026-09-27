@@ -5,18 +5,19 @@
    ============================================================ */
 
 const App = (() => {
+  // Coach IA au centre en bouton surélevé — portée du pouce sur mobile.
   const TABS = [
     { route: "#/accueil",    label: "Accueil",    icon: "home" },
     { route: "#/nutrition",  label: "Nutrition",  icon: "nutrition" },
+    { route: "#/coach",      label: "Coach IA",   icon: "coach", fab: true },
     { route: "#/programmes", label: "Programmes", icon: "programs" },
-    { route: "#/coach",      label: "Coach IA",   icon: "coach" },
     { route: "#/pricing",    label: "Pricing",    icon: "pricing" },
   ];
 
   const ROUTES = [
     { re: /^#\/accueil$/,                  view: HomeView },
     { re: /^#\/nutrition$/,                view: NutritionView },
-    { re: /^#\/programmes(?:\/([\w-]+))?$/, view: ProgrammesView },
+    { re: /^#\/programmes(?:\/([\w-]+))?(?:\/([\w-]+))?$/, view: ProgrammesView },
     { re: /^#\/coach$/,                    view: CoachView },
     { re: /^#\/pricing$/,                  view: PricingView },
     { re: /^#\/legal\/([\w-]+)$/,          view: LegalView },
@@ -33,7 +34,7 @@ const App = (() => {
 
   function renderNav() {
     const html = TABS.map(
-      (t) => `<a href="${t.route}" data-route="${t.route}">${UI.icon(t.icon)}<span>${t.label}</span></a>`
+      (t) => `<a href="${t.route}" data-route="${t.route}"${t.fab ? ' class="tab-fab"' : ""}>${UI.icon(t.icon)}<span>${t.label}</span></a>`
     ).join("");
     document.getElementById("tabbar").innerHTML = html;
     document.getElementById("nav").innerHTML = html;
@@ -48,6 +49,7 @@ const App = (() => {
 
   function route() {
     const { view, params, hash } = currentRoute();
+    document.getElementById("modal-root").innerHTML = "";
     const el = document.getElementById("view");
     el.style.animation = "none";
     void el.offsetHeight;

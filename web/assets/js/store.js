@@ -90,7 +90,30 @@ const Store = (() => {
     persist();
   };
   const getActiveProgram = () =>
-    PROGRAMS.find((p) => p.id === state.activeProgram) || null;
+    allPrograms().find((p) => p.id === state.activeProgram) || null;
+
+  /* ---------- Programmes personnalisés ---------- */
+  // Les programmes créés dans l'app vivent ici (localStorage) et sont
+  // fusionnés au catalogue — le coach les voit comme les autres.
+
+  const getCustomPrograms = () => state.customPrograms || [];
+  const allPrograms = () => [...PROGRAMS, ...getCustomPrograms()];
+
+  const saveProgram = (prog) => {
+    state.customPrograms = getCustomPrograms()
+      .filter((p) => p.id !== prog.id)
+      .concat({ ...prog, custom: true });
+    persist();
+    return prog;
+  };
+
+  const deleteProgram = (id) => {
+    state.customPrograms = getCustomPrograms().filter((p) => p.id !== id);
+    if (state.activeProgram === id) state.activeProgram = null;
+    if (state.doneSessions)
+      state.doneSessions = state.doneSessions.filter((s) => !s.startsWith(id));
+    persist();
+  };
 
   const isSessionDone = (sessionId) =>
     (state.doneSessions || []).includes(sessionId);
@@ -136,6 +159,7 @@ const Store = (() => {
     getGoals, setGoals,
     getLog, addEntry, removeEntry, dayTotals, recentDays,
     getActiveProgramId, setActiveProgram, getActiveProgram,
+    getCustomPrograms, allPrograms, saveProgram, deleteProgram,
     isSessionDone, toggleSessionDone,
     getProfile, setProfile,
     getCoachConfig, setCoachConfig,

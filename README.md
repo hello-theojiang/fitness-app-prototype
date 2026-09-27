@@ -45,12 +45,12 @@ fitness-app-prototype/
 |---|---|
 | **Accueil** | Anneau de calories, macros, séance du jour, raccourci coach |
 | **Nutrition** | Journal par jour/repas, base d'aliments, objectifs réglables |
-| **Programmes** | 4 programmes, séances détaillées, **mannequin musculaire** par exercice |
-| **Coach IA** | Chat qui connaît ta nutrition, tes objectifs et ton programme actif |
+| **Programmes** | 4 programmes + **éditeur intégré** (crée/modifie tes plans, export/import JSON), séances détaillées, **mannequin musculaire** par exercice |
+| **Coach IA** | Chat qui connaît ta nutrition, tes objectifs et tes programmes (y compris tes créations) |
 | **Pricing** | 3 plans : Découverte (0 €), Pro (9,99 €/mois), Elite (19,99 €/mois) |
 | Légal | Mentions légales + CGU (liens en bas de page) |
 
-Toutes les données (journal, objectifs, programme actif, historique du chat) sont stockées **localement** — rien ne quitte l'appareil en version prototype.
+Toutes les données (journal, objectifs, programme actif, programmes créés, historique du chat) sont stockées **localement** — rien ne quitte l'appareil en version prototype. Les programmes personnalisés sont des documents JSON : export/import dans l'onglet Programmes (sur Android, l'export écrit dans Téléchargements), donc lisibles et générables par l'IA.
 
 ## Lancer la version web
 
@@ -96,6 +96,7 @@ Onglet **Coach IA** → **⚙︎ IA** : renseigne la clé API, l'endpoint et le 
 ## Roadmap
 
 - [x] Coach IA branchable sur un vrai modèle (clé API dans ⚙︎ IA)
+- [x] Création de programmes dans l'app + export/import JSON
 - [ ] Test du appel réel avec une clé valide
 - [ ] Activer les paiements pour les plans Pro / Elite
 - [ ] Compléter les champs `[À compléter]` des Mentions légales / CGU avant mise en production

@@ -29,7 +29,7 @@
   --sidebar-w: 236px;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
 html { -webkit-text-size-adjust: 100%; }
 
@@ -40,6 +40,8 @@ body {
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -49,6 +51,14 @@ img { display: block; }
 ul { list-style: none; }
 
 ::selection { background: rgba(198, 242, 78, 0.3); }
+
+/* Retour tactile immédiat */
+.btn, .chip, .tabbar a, .day-nav button { touch-action: manipulation; }
+.btn:active { transform: scale(0.97); }
+.chip:active { transform: scale(0.95); }
+
+/* Scroll fluide des zones internes */
+.chat-scroll, .modal-body { scroll-behavior: smooth; }
 
 /* ---------- Layout shell ---------- */
 
@@ -106,6 +116,27 @@ ul { list-style: none; }
 
 .tabbar a svg { width: 22px; height: 22px; }
 .tabbar a.active { color: var(--accent); }
+
+/* Coach IA : bouton central surélevé, accessible au pouce */
+.tabbar a.tab-fab { position: relative; }
+.tabbar a.tab-fab .ico {
+  width: 54px; height: 54px; margin-top: -32px;
+  align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: var(--accent-grad); color: #0b0d10;
+  box-shadow: 0 8px 22px rgba(198, 242, 78, 0.4), 0 0 0 5px var(--bg);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.tabbar a.tab-fab .ico svg { width: 25px; height: 25px; }
+.tabbar a.tab-fab > span { font-size: 10px; }
+.tabbar a.tab-fab.active { color: var(--accent); }
+.tabbar a.tab-fab.active .ico { transform: scale(1.06); box-shadow: 0 8px 26px rgba(198, 242, 78, 0.6), 0 0 0 5px var(--bg); }
+.tabbar a.tab-fab:active .ico { transform: scale(0.94); }
+@media (min-width: 860px) {
+  .tabbar a.tab-fab .ico { margin-top: 0; width: 1em; height: 1em; border-radius: 0; background: none; color: inherit; box-shadow: none; }
+  .tabbar a.tab-fab .ico svg { width: 20px; height: 20px; }
+  .tabbar a.tab-fab > span { font-size: inherit; }
+}
 
 /* Taille par défaut des icônes : les <svg> sans width/height s'effondrent
    en 0×0 hors des contextes explicitement dimensionnés. */
@@ -315,6 +346,68 @@ ul { list-style: none; }
 .ex-table .ex-name { font-weight: 600; }
 .ex-table .ex-reps { text-align: right; color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
 
+/* ---------- Éditeur de programme ---------- */
+
+.prog-tools { display: flex; gap: 10px; flex-wrap: wrap; }
+.prog-tools .btn { flex: 1; justify-content: center; }
+.prog-actions { display: flex; gap: 8px; }
+
+.ed-meta .field:last-child { margin-bottom: 0; }
+.ed-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+
+.ed-session { padding: 14px; }
+.ed-session-head { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+.ed-session-head .ed-sname {
+  flex: 1; background: transparent; border: none; border-bottom: 1px dashed var(--border);
+  color: var(--text); font-weight: 700; font-size: 14.5px; padding: 6px 2px;
+}
+.ed-session-head .ed-sname:focus { outline: none; border-bottom-color: var(--accent); }
+
+.ed-ex { padding: 8px 0; border-bottom: 1px dashed var(--border); }
+.ed-ex:last-child { border-bottom: none; }
+.ed-ex-line { display: flex; gap: 8px; align-items: center; }
+.ed-exname, .ed-exsets {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  color: var(--text); padding: 9px 10px; font-size: 13.5px;
+}
+.ed-exname { flex: 1.6; }
+.ed-exsets { flex: 0 0 96px; }
+.ed-exname:focus, .ed-exsets:focus { outline: none; border-color: var(--accent); }
+.ed-x {
+  color: var(--text-faint); font-size: 12px; padding: 6px;
+  border-radius: 8px; flex-shrink: 0;
+}
+.ed-x:hover { color: var(--danger); background: rgba(255,107,107,.08); }
+
+.ed-muscles { margin-top: 6px; }
+.ed-muscles summary {
+  font-size: 11.5px; color: var(--text-faint); font-weight: 600;
+  cursor: pointer; list-style: none;
+}
+.ed-muscles summary::after { content: " ▸"; }
+.ed-muscles[open] summary::after { content: " ▾"; }
+.ed-mgroup { display: flex; gap: 8px; align-items: flex-start; margin-top: 8px; }
+.ed-mgroup > span { font-size: 10.5px; color: var(--text-faint); font-weight: 700; text-transform: uppercase; letter-spacing: .4px; padding-top: 5px; flex-shrink: 0; width: 76px; }
+.ed-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.mchip {
+  font-size: 10.5px; font-weight: 600; padding: 4px 9px;
+  border: 1px solid var(--border); border-radius: 99px;
+  color: var(--text-muted); cursor: pointer; user-select: none;
+  transition: all .15s ease;
+}
+.mchip.on { background: var(--accent-soft); border-color: rgba(198,242,78,.4); color: var(--accent); }
+
+.ed-foot { display: flex; gap: 10px; justify-content: flex-end; }
+.ed-foot .btn-primary { flex: 1; }
+
+.ed-json {
+  width: 100%; min-height: 180px; resize: vertical;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  color: var(--text-muted); font-family: ui-monospace, monospace; font-size: 11px;
+  padding: 10px;
+}
+
 /* ---------- Chat / Coach IA ---------- */
 
 .chat { display: flex; flex-direction: column; flex: 1; gap: 12px; }
@@ -416,10 +509,14 @@ ul { list-style: none; }
 
 .muscle-map { width: 100%; max-width: 360px; height: auto; }
 .mm-sil { fill: #181f29; stroke: #2c3648; stroke-width: 0.9; }
-.mm-muscle { fill: #26303f; stroke: rgba(255,255,255,.06); stroke-width: 0.6; transition: fill 0.3s ease, filter 0.3s ease; }
+.mm-sil-stroke { stroke: #181f29; }
+.mm-muscle { transition: fill 0.3s ease, stroke 0.3s ease, filter 0.3s ease; }
+.mm-muscle:not(.mm-seg) { fill: #1d2530; stroke: rgba(255,255,255,.05); stroke-width: 0.6; }
+.mm-muscle.mm-seg { fill: none; stroke: #1d2530; }
 .mm-muscle.on { fill: url(#mmGrad); filter: drop-shadow(0 0 7px rgba(198,242,78,.55)); }
+.mm-muscle.mm-seg.on { stroke: url(#mmGrad); fill: none; }
 .mm-muscle.on2 { fill: #41604f; }
-.mm-spine { stroke: rgba(255,255,255,.07); stroke-width: 1; fill: none; }
+.mm-muscle.mm-seg.on2 { stroke: #41604f; }
 .mm-shadow { fill: rgba(0,0,0,.3); }
 .mm-label { fill: var(--text-faint); font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; }
 
