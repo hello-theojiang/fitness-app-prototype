@@ -25,8 +25,14 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Android SDK
-        uses: android-actions/setup-android@v3
+      # Le SDK Android est préinstallé sur les runners ubuntu ($ANDROID_HOME).
+      # setup-android@v3 échoue : il installe le package obsolète "tools".
+      - name: SDK Android (platform-35, build-tools 35.0.0)
+        working-directory: .
+        run: |
+          SDKMANAGER="$(ls -d "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager | sort -V | tail -1)"
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          "$SDKMANAGER" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Gradle cache
         uses: gradle/actions/setup-gradle@v4
