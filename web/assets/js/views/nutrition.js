@@ -101,6 +101,9 @@ const NutritionView = (() => {
               if (picked.unit) {
                 m.querySelector("#add-qty-label").textContent = `Quantité (${picked.unit})`;
                 gramsIn.value = 1;
+              } else {
+                m.querySelector("#add-qty-label").textContent = "Quantité (g)";
+                gramsIn.value = 100;
               }
               applyFood();
             };

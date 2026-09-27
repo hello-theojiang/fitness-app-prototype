@@ -43,6 +43,7 @@ const Store = (() => {
       meal,
       name: item.name,
       grams: item.grams || null,
+      unit: item.unit || null,
       kcal: Math.round(item.kcal),
       p: +(item.p || 0).toFixed(1),
       c: +(item.c || 0).toFixed(1),
