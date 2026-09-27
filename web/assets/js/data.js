@@ -237,3 +237,14 @@ const PROGRAMS = [
 ];
 
 const DEFAULT_GOALS = { kcal: 2200, protein: 140, carbs: 240, fat: 73 };
+
+/* Index des exercices connus : nom → muscles (pour l'éditeur de
+   programmes : choisir un exercice connu pré-remplit ses muscles). */
+const EXERCISE_INDEX = (() => {
+  const idx = {};
+  for (const p of PROGRAMS)
+    for (const s of p.sessions)
+      for (const e of s.exercises)
+        if (!idx[e.name]) idx[e.name] = { muscles: e.muscles || [], secondary: e.secondary || [] };
+  return idx;
+})();

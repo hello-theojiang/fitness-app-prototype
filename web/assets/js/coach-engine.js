@@ -63,8 +63,12 @@ const CoachEngine = (() => {
       JSON.stringify(c.week),
       "## Programme actif",
       JSON.stringify(c.program),
-      "## Programmes disponibles",
-      JSON.stringify(PROGRAMS.map((p) => ({ id: p.id, name: p.name, level: p.level, days: p.daysPerWeek, goal: p.goal }))),
+      "## Programmes disponibles (y compris ceux créés par l'utilisateur)",
+      JSON.stringify(Store.allPrograms().map((p) => ({
+        id: p.id, name: p.name, level: p.level, days: p.daysPerWeek, goal: p.goal,
+        custom: !!p.custom,
+        sessions: p.sessions.map((s) => ({ name: s.name, exercises: s.exercises.map((e) => e.name) })),
+      }))),
     ].join("\n");
   }
 
@@ -112,7 +116,7 @@ const CoachEngine = (() => {
 
     if (/(programme|séance|seance|entra|workout|exercice|sport)/.test(q)) {
       if (c.program) {
-        const p = PROGRAMS.find((x) => x.id === c.program.id);
+        const p = Store.allPrograms().find((x) => x.id === c.program.id);
         const next = p.sessions.find((s) => !Store.isSessionDone(s.id));
         return `Ton programme actuel est **${p.name}** (${p.daysPerWeek} j/sem).\n\n${next
           ? `Prochaine séance : **${next.name}** — ${next.exercises.length} exercices.`
