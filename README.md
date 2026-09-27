@@ -1,6 +1,8 @@
 # Pulse — Fitness, Nutrition & Coach IA
 
-Application de suivi fitness : **journal nutrition**, **programmes d'entraînement** avec mannequin musculaire interactif, **coach IA** (harnais prêt à brancher un modèle), page **pricing** et pages légales.
+Application de suivi fitness : **journal nutrition**, **programmes d'entraînement** avec mannequin musculaire interactif, **coach IA** (branchable sur un modèle OpenAI-compatible via ⚙︎ IA), page **pricing** et pages légales.
+
+Licence [MIT](LICENSE).
 
 Une seule base de code web sert à la fois l'**application HTML** (navigateur) et l'**application Android** (WebView embarquant les mêmes assets).
 
@@ -17,7 +19,7 @@ fitness-app-prototype/
 │           ├── data.js         # Base d'aliments + bibliothèque de programmes
 │           ├── store.js        # Persistance locale (localStorage)
 │           ├── components.js   # Icônes SVG, toasts, modales
-│           ├── coach-engine.js # Harnais IA : contexte + réponses
+│           ├── coach-engine.js # Harnais IA : contexte + appel modèle
 │           ├── muscle-map.js   # Mannequin musculaire SVG (avant/dos)
 │           ├── views/          # Une vue par onglet
 │           │   ├── home.js         # Tableau de bord
@@ -31,8 +33,10 @@ fitness-app-prototype/
 │   ├── app/src/main/           # Manifeste, MainActivity, ressources
 │   ├── build.gradle.kts        # assets.srcDirs → ../web (pas de duplication)
 │   └── gradlew                 # Wrapper Gradle 8.10.2 (AGP 8.6.1, Java 17)
-├── .github/workflows/android.yml  # CI : build APK + release sur tag v*
-└── docs/                       # Architecture et guide d'intégration IA
+├── tools/bundle.py             # Assemble web/ en un pulse.html autonome
+├── .github/workflows/android.yml  # CI : build APK + pulse.html, release sur tag v*
+├── docs/                       # Architecture et guide d'intégration IA
+└── LICENSE                     # MIT
 ```
 
 ## Onglets
@@ -58,6 +62,13 @@ python3 -m http.server 8080
 
 Ou simplement ouvrir `web/index.html` dans un navigateur.
 
+### Version web autonome (un seul fichier)
+
+```sh
+python3 tools/bundle.py
+# → dist/pulse.html : toute l'app inline (CSS + JS + icône), fonctionne en file://
+```
+
 ## Construire l'APK Android
 
 Prérequis : JDK 17, Android SDK (platform `android-35`, `build-tools;35.0.0`).
@@ -71,15 +82,21 @@ echo "sdk.dir=/chemin/vers/android-sdk" > local.properties   # ou ANDROID_HOME
 
 L'APK embarque `web/` dans ses assets (`assets.srcDirs` dans `android/app/build.gradle.kts`) — aucune copie à maintenir.
 
-La CI (`.github/workflows/android.yml`) construit l'APK à chaque push/PR et le publie en **release** quand on pousse un tag `v*`.
+La CI (`.github/workflows/android.yml`) construit l'APK et `dist/pulse.html` à chaque push/PR et les publie en **release** quand on pousse un tag `v*` :
 
-## Brancher le vrai modèle IA (plus tard)
+```sh
+git tag v0.1.0 && git push --tags
+# → release GitHub avec app-debug.apk + pulse.html
+```
 
-Voir [`docs/COACH-IA.md`](docs/COACH-IA.md) : le harnais (`coach-engine.js`) assemble déjà tout le contexte (profil, objectifs, journal nutrition 7 j, programme actif) en un *system prompt* — il ne reste qu'à renseigner `COACH_CONFIG` et remplacer `localReply` par l'appel HTTP du fournisseur choisi.
+## Configurer le coach IA
+
+Onglet **Coach IA** → **⚙︎ IA** : renseigne la clé API, l'endpoint et le modèle (compatible OpenAI — OpenAI, Mistral, Groq, LM Studio…). Sans clé, le coach répond avec des règles locales. Voir [`docs/COACH-IA.md`](docs/COACH-IA.md).
 
 ## Roadmap
 
-- [ ] Brancher le coach IA sur un vrai modèle (endpoint + clé)
+- [x] Coach IA branchable sur un vrai modèle (clé API dans ⚙︎ IA)
+- [ ] Test du appel réel avec une clé valide
 - [ ] Activer les paiements pour les plans Pro / Elite
 - [ ] Compléter les champs `[À compléter]` des Mentions légales / CGU avant mise en production
 - [ ] Signature de release de l'APK (le build debug utilise la clé de debug)

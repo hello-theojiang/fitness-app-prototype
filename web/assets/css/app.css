@@ -414,12 +414,14 @@ ul { list-style: none; }
 
 /* ---------- Mannequin musculaire ---------- */
 
-.muscle-map { width: 100%; max-width: 340px; height: auto; }
-.mm-sil { fill: #20262f; stroke: var(--border-strong); stroke-width: 1; }
-.mm-muscle { fill: #262e3a; stroke: var(--border); stroke-width: 0.8; transition: fill 0.35s ease; }
-.mm-muscle.on { fill: url(#mmGrad); filter: drop-shadow(0 0 6px rgba(198,242,78,.45)); }
-.mm-muscle.on2 { fill: #3d5a52; }
-.mm-label { fill: var(--text-faint); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+.muscle-map { width: 100%; max-width: 360px; height: auto; }
+.mm-sil { fill: #181f29; stroke: #2c3648; stroke-width: 0.9; }
+.mm-muscle { fill: #26303f; stroke: rgba(255,255,255,.06); stroke-width: 0.6; transition: fill 0.3s ease, filter 0.3s ease; }
+.mm-muscle.on { fill: url(#mmGrad); filter: drop-shadow(0 0 7px rgba(198,242,78,.55)); }
+.mm-muscle.on2 { fill: #41604f; }
+.mm-spine { stroke: rgba(255,255,255,.07); stroke-width: 1; fill: none; }
+.mm-shadow { fill: rgba(0,0,0,.3); }
+.mm-label { fill: var(--text-faint); font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; }
 
 /* ---------- Legal ---------- */
 

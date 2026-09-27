@@ -111,6 +111,14 @@ const Store = (() => {
     persist();
   };
 
+  /* ---------- Config du coach IA ---------- */
+
+  const getCoachConfig = () => state.coachConfig || {};
+  const setCoachConfig = (cfg) => {
+    state.coachConfig = { ...getCoachConfig(), ...cfg };
+    persist();
+  };
+
   /* ---------- Historique du chat coach ---------- */
 
   const getChat = () => state.chat || [];
@@ -130,6 +138,7 @@ const Store = (() => {
     getActiveProgramId, setActiveProgram, getActiveProgram,
     isSessionDone, toggleSessionDone,
     getProfile, setProfile,
+    getCoachConfig, setCoachConfig,
     getChat, pushChat, clearChat,
   };
 })();

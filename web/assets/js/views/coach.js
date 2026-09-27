@@ -21,7 +21,54 @@ const CoachView = (() => {
       ${ts ? `<div class="msg-time">${new Date(ts).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</div>` : ""}
     </div>`;
 
+  function chipsHtml() {
+    return CoachEngine.contextChips().map((c) => `<span class="ctx-chip">${UI.esc(c)}</span>`).join("")
+      + `<span class="ctx-chip ctx-chip-ia">${UI.esc(CoachEngine.statusLabel())}</span>`;
+  }
+
   function scrollDown(sc) { sc.scrollTop = sc.scrollHeight; }
+
+  /* ---------- Réglages IA : clé API, endpoint, modèle ---------- */
+
+  function openSettingsModal(onSaved) {
+    const cfg = Store.getCoachConfig();
+    UI.modal({
+      title: "Configurer l'IA",
+      bodyHTML: `
+        <div class="field">
+          <label>Clé API</label>
+          <input id="cfg-key" type="password" value="${UI.esc(cfg.apiKey || "")}" placeholder="sk-…" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label>Endpoint (format OpenAI)</label>
+          <input id="cfg-endpoint" type="text" value="${UI.esc(cfg.endpoint || CoachEngine.DEFAULTS.endpoint)}" />
+        </div>
+        <div class="field">
+          <label>Modèle</label>
+          <input id="cfg-model" type="text" value="${UI.esc(cfg.model || CoachEngine.DEFAULTS.model)}" />
+        </div>
+        <div style="font-size:12px;color:var(--text-faint)">
+          La clé reste sur ton appareil (localStorage). Compatible OpenAI, Mistral,
+          Groq, LM Studio… — vide-la pour repasser en coach local.
+        </div>`,
+      actions: [
+        { label: "Annuler" },
+        {
+          label: "Enregistrer",
+          class: "btn-primary",
+          onClick: (m) => {
+            Store.setCoachConfig({
+              apiKey: m.querySelector("#cfg-key").value.trim(),
+              endpoint: m.querySelector("#cfg-endpoint").value.trim(),
+              model: m.querySelector("#cfg-model").value.trim(),
+            });
+            UI.toast("Réglages IA enregistrés");
+            onSaved();
+          },
+        },
+      ],
+    });
+  }
 
   async function send(text, el) {
     if (sending || !text.trim()) return;
@@ -43,7 +90,7 @@ const CoachView = (() => {
     scrollDown(sc);
 
     const chipsEl = el.querySelector("#ctx-chips");
-    if (chipsEl) chipsEl.innerHTML = CoachEngine.contextChips().map((c) => `<span class="ctx-chip">${UI.esc(c)}</span>`).join("");
+    if (chipsEl) chipsEl.innerHTML = chipsHtml();
     sending = false;
   }
 
@@ -51,15 +98,18 @@ const CoachView = (() => {
     const history = Store.getChat();
 
     el.innerHTML = `
-      <div class="view-header">
-        <div class="view-eyebrow">Assistant personnel</div>
-        <h1 class="view-title">Coach Pulse</h1>
-        <p class="view-subtitle">Le coach lit ton journal nutrition, tes objectifs et ton programme pour te conseiller.</p>
+      <div class="view-header" style="flex-direction:row;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="view-eyebrow">Assistant personnel</div>
+          <h1 class="view-title">Coach Pulse</h1>
+          <p class="view-subtitle">Le coach lit ton journal nutrition, tes objectifs et ton programme pour te conseiller.</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="coach-settings">⚙︎ IA</button>
       </div>
 
       <div class="chat">
         <div class="chat-context" id="ctx-chips">
-          ${CoachEngine.contextChips().map((c) => `<span class="ctx-chip">${UI.esc(c)}</span>`).join("")}
+          ${chipsHtml()}
         </div>
 
         <div class="chat-scroll" id="chat-scroll">
@@ -97,6 +147,9 @@ const CoachView = (() => {
     el.querySelectorAll(".chip").forEach((c) => {
       c.onclick = () => send(c.textContent, el);
     });
+
+    el.querySelector("#coach-settings").onclick = () =>
+      openSettingsModal(() => render(el));
   }
 
   return { render };
