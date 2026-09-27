@@ -1,24 +1,18 @@
 /* ============================================================
    Pulse — Coach IA (harness)
    ------------------------------------------------------------
-   Ce module est le « harnais » du futur modèle : il assemble un
-   contexte complet (profil, objectifs, journal nutrition, programme
-   actif, progression) puis l'expose sous forme de system prompt.
-
-   BRANCHEMENT FUTUR D'UN MODÈLE :
-     Renseigner COACH_CONFIG puis remplacer `localReply` par un
-     appel HTTP à l'endpoint choisi (fetch) en passant :
-       - system : CoachEngine.systemPrompt()
-       - messages : historique Store.getChat()
-     Les clés/API ne doivent JAMAIS être en dur : prévoir un champ
-     de réglage ou un petit backend proxy.
+   Le « harnais » assemble tout le contexte local (profil, objectifs,
+   journal nutrition 7 j, programme actif, progression) en un system
+   prompt, puis appelle le modèle configuré dans l'onglet Coach
+   (endpoint compatible OpenAI : OpenAI, Mistral, Groq, LM Studio…).
+   Sans clé API configurée, `localReply` (règles) prend le relais.
+   La clé est stockée en localStorage sur l'appareil — voir
+   docs/COACH-IA.md pour les précautions.
    ============================================================ */
 
-const COACH_CONFIG = {
-  provider: "local-rules", // 'openai' | 'anthropic' | 'local-rules' …
-  endpoint: "",            // ex. https://api.openai.com/v1/chat/completions
-  apiKeySetting: "",       // nom du secret à stocker côté appareil
-  model: "",
+const COACH_DEFAULTS = {
+  endpoint: "https://api.openai.com/v1/chat/completions",
+  model: "gpt-4o-mini",
 };
 
 const CoachEngine = (() => {
@@ -142,13 +136,51 @@ const CoachEngine = (() => {
     return `J'ai bien noté. Pour l'instant je fonctionne avec des règles locales — mon « vrai » cerveau IA sera branché ici plus tard, avec tout ton contexte (nutrition, programme, objectifs).\n\nEssaie : « Analyse ma nutrition », « Combien de protéines ? », « Propose-moi une séance ».`;
   }
 
+  /* ---------- Appel au modèle (endpoint compatible OpenAI) ---------- */
+
+  async function remoteReply(cfg) {
+    const messages = Store.getChat()
+      .slice(-14)
+      .map((m) => ({ role: m.role === "bot" ? "assistant" : "user", content: m.text }));
+
+    const res = await fetch(cfg.endpoint || COACH_DEFAULTS.endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${cfg.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: cfg.model || COACH_DEFAULTS.model,
+        messages: [{ role: "system", content: systemPrompt() }, ...messages],
+      }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const detail = data?.error?.message || `HTTP ${res.status}`;
+      throw new Error(detail);
+    }
+    const text = data?.choices?.[0]?.message?.content;
+    if (!text) throw new Error("réponse vide du modèle");
+    return text.trim();
+  }
+
   async function respond(input) {
-    if (COACH_CONFIG.provider !== "local-rules" && COACH_CONFIG.endpoint) {
-      /* Point d'insertion du modèle — voir commentaire d'en-tête. */
-      // return await callProvider(input, systemPrompt());
+    const cfg = Store.getCoachConfig();
+    if (cfg.apiKey) {
+      try {
+        return await remoteReply(cfg);
+      } catch (e) {
+        return `**Appel au modèle impossible** (${e.message}). Vérifie la clé, l'endpoint et le modèle dans ⚙︎ IA — je réponds en mode local en attendant.\n\n${localReply(input)}`;
+      }
     }
     await new Promise((r) => setTimeout(r, 450 + Math.random() * 450));
     return localReply(input);
+  }
+
+  function statusLabel() {
+    const cfg = Store.getCoachConfig();
+    return cfg.apiKey ? `IA : ${cfg.model || COACH_DEFAULTS.model}` : "IA : locale";
   }
 
   /* Résumé compact pour les puces de contexte affichées dans le chat. */
@@ -163,5 +195,5 @@ const CoachEngine = (() => {
     return chips;
   }
 
-  return { buildContext, systemPrompt, respond, contextChips };
+  return { buildContext, systemPrompt, respond, contextChips, statusLabel, DEFAULTS: COACH_DEFAULTS };
 })();

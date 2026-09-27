@@ -40,16 +40,24 @@ jobs:
       - name: Build APK
         run: ./gradlew assembleDebug
 
-      - name: Upload APK (artefact)
+      - name: Bundle web autonome (dist/pulse.html)
+        working-directory: .
+        run: python3 tools/bundle.py
+
+      - name: Upload artefacts (APK + HTML)
         uses: actions/upload-artifact@v4
         with:
-          name: pulse-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: pulse-app
+          path: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            dist/pulse.html
 
       - name: Release (tags uniquement)
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: android/app/build/outputs/apk/debug/app-debug.apk
+          files: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            dist/pulse.html
           name: "Pulse ${{ github.ref_name }}"
           generate_release_notes: true
