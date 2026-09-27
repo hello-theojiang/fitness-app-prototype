@@ -25,7 +25,7 @@ const NutritionView = (() => {
         <div id="food-suggest"></div>
       </div>
       <div class="field-row">
-        <div class="field"><label>Quantité (g)</label><input id="add-grams" type="number" inputmode="decimal" value="100" min="0" /></div>
+        <div class="field"><label id="add-qty-label">Quantité (g)</label><input id="add-grams" type="number" inputmode="decimal" value="100" min="0" step="0.5" /></div>
         <div class="field"><label>Calories (kcal)</label><input id="add-kcal" type="number" inputmode="decimal" min="0" /></div>
       </div>
       <div class="field-row" style="grid-template-columns:1fr 1fr 1fr">
@@ -44,6 +44,7 @@ const NutritionView = (() => {
         {
           label: "Ajouter",
           class: "btn-primary",
+          keepOpen: true,
           onClick: (m) => {
             const name = m.querySelector("#add-name").value.trim();
             const kcal = parseFloat(m.querySelector("#add-kcal").value);
@@ -51,11 +52,13 @@ const NutritionView = (() => {
             Store.addEntry(dayKey, mealId, {
               name,
               grams: parseFloat(m.querySelector("#add-grams").value) || null,
+              unit: picked && picked.unit ? picked.unit : null,
               kcal,
               p: parseFloat(m.querySelector("#add-p").value) || 0,
               c: parseFloat(m.querySelector("#add-c").value) || 0,
               f: parseFloat(m.querySelector("#add-f").value) || 0,
             });
+            m.remove();
             UI.toast("Aliment ajouté");
             onDone();
           },
@@ -72,7 +75,7 @@ const NutritionView = (() => {
         const applyFood = () => {
           if (!picked) return;
           const qty = parseFloat(gramsIn.value) || 0;
-          const k = qty / 100;
+          const k = picked.unit ? qty : qty / 100;
           fields.kcal.value = Math.round(picked.kcal * k);
           fields.p.value = (picked.p * k).toFixed(1);
           fields.c.value = (picked.c * k).toFixed(1);
@@ -88,13 +91,17 @@ const NutritionView = (() => {
           if (!hits.length) { box.innerHTML = ""; box.className = ""; return; }
           box.className = "food-suggest";
           box.innerHTML = hits
-            .map((f, i) => `<button type="button" data-i="${i}"><span>${UI.esc(f.name)}</span><span class="fs-kcal">${f.kcal} kcal/100 g</span></button>`)
+            .map((f, i) => `<button type="button" data-i="${i}"><span>${UI.esc(f.name)}</span><span class="fs-kcal">${f.kcal} kcal/${f.unit || "100 g"}</span></button>`)
             .join("");
           box.querySelectorAll("button").forEach((b) => {
             b.onclick = () => {
               picked = hits[+b.dataset.i];
               nameIn.value = picked.name;
               box.innerHTML = ""; box.className = "";
+              if (picked.unit) {
+                m.querySelector("#add-qty-label").textContent = `Quantité (${picked.unit})`;
+                gramsIn.value = 1;
+              }
               applyFood();
             };
           });
@@ -145,7 +152,7 @@ const NutritionView = (() => {
       ? list.map((e) => `
           <div class="meal-item">
             <div>
-              <div class="mi-name">${UI.esc(e.name)}${e.grams ? ` <span style="color:var(--text-faint);font-weight:500">· ${e.grams} g</span>` : ""}</div>
+              <div class="mi-name">${UI.esc(e.name)}${e.grams ? ` <span style="color:var(--text-faint);font-weight:500">· ${e.grams} ${e.unit || "g"}</span>` : ""}</div>
               <div class="mi-meta">${e.kcal} kcal · P ${e.p} · G ${e.c} · L ${e.f}</div>
             </div>
             <button class="mi-del" data-del="${e.id}" aria-label="Supprimer">${UI.icon("trash")}</button>
